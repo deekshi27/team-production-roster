@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/team-production-roster/static/css/main.2f59c9f2.css",
+    "main.js": "/team-production-roster/static/js/main.ae4ff554.js",
+    "static/js/453.a643b9c5.chunk.js": "/team-production-roster/static/js/453.a643b9c5.chunk.js",
+    "index.html": "/team-production-roster/index.html",
+    "main.2f59c9f2.css.map": "/team-production-roster/static/css/main.2f59c9f2.css.map",
+    "main.ae4ff554.js.map": "/team-production-roster/static/js/main.ae4ff554.js.map",
+    "453.a643b9c5.chunk.js.map": "/team-production-roster/static/js/453.a643b9c5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2f59c9f2.css",
+    "static/js/main.ae4ff554.js"
+  ]
+}
