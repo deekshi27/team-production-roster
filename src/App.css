@@ -1,0 +1,101 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f5f7fa;
+}
+
+.app {
+  padding: 30px;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  padding: 24px;
+  font-size: 26px;
+  font-weight: bold;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.shift-details {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.controls input,
+.controls select {
+  padding: 6px;
+}
+
+.controls button {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.employee-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+}
+
+.employee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.period {
+  margin: 10px 0 20px;
+  color: #555;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.day.off {
+  background: #fdecea;
+}
+
+.day-select {
+  margin-top: 6px;
+  width: 100%;
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: right;
+}
