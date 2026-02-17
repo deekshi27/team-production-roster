@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 
 /* ================= SHIFTS ================= */
@@ -6,7 +6,7 @@ import "./App.css";
 const shiftDetails = {
   "Shift 1": {
     label: "04:30 AM – 12:30 PM",
-    off: ["Monday", "Tuesday"],
+    Week_Off: "Monday & Tuesday",
     schedule: {
       Monday: "Week_Off",
       Tuesday: "Week_Off",
@@ -19,7 +19,7 @@ const shiftDetails = {
   },
   "Shift 2": {
     label: "12:30 PM – 08:30 PM",
-    off: ["Thursday", "Friday"],
+    Week_Off: "Thursday & Friday",
     schedule: {
       Monday: "12:30 PM – 08:30 PM",
       Tuesday: "12:30 PM – 08:30 PM",
@@ -33,7 +33,7 @@ const shiftDetails = {
   "Shift 3": {
     label:
       "Mon–Tue: 04:30 AM – 12:30 PM | Wed–Fri: 12:30 PM – 08:30 PM",
-    off: ["Saturday", "Sunday"],
+    Week_Off: "Saturday & Sunday",
     schedule: {
       Monday: "04:30 AM – 12:30 PM",
       Tuesday: "04:30 AM – 12:30 PM",
@@ -46,7 +46,7 @@ const shiftDetails = {
   },
   "Shift 4": {
     label: "08:30 AM – 04:30 PM",
-    off: ["Saturday", "Sunday"],
+    Week_Off: "Saturday & Sunday",
     schedule: {
       Monday: "08:30 AM – 04:30 PM",
       Tuesday: "08:30 AM – 04:30 PM",
@@ -59,7 +59,7 @@ const shiftDetails = {
   },
   "Shift 5": {
     label: "08:30 PM – 04:30 AM",
-    off: ["Thursday", "Friday"],
+    Week_Off: "Thursday & Friday",
     schedule: {
       Monday: "08:30 PM – 04:30 AM",
       Tuesday: "08:30 PM – 04:30 AM",
@@ -70,12 +70,28 @@ const shiftDetails = {
       Sunday: "08:30 PM – 04:30 AM",
     },
   },
+
+  /* ✅ NEW SHIFT 6 */
+  "Shift 6": {
+    label: "06:30 PM – 02:30 AM",
+    Week_Off: "Saturday & Sunday",
+    schedule: {
+      Monday: "06:30 PM – 02:30 AM",
+      Tuesday: "06:30 PM – 02:30 AM",
+      Wednesday: "06:30 PM – 02:30 AM",
+      Thursday: "06:30 PM – 02:30 AM",
+      Friday: "06:30 PM – 02:30 AM",
+      Saturday: "Week_Off",
+      Sunday: "Week_Off",
+    },
+  },
 };
 
 const timingOptions = [
   "04:30 AM – 12:30 PM",
   "12:30 PM – 08:30 PM",
   "08:30 AM – 04:30 PM",
+  "06:30 PM – 02:30 AM", // ✅ Shift 6 timing
   "08:30 PM – 04:30 AM",
 ];
 
@@ -103,7 +119,7 @@ const generateDatesBetween = (start, end) => {
   return dates;
 };
 
-const dateKey = (d) => d.toISOString().split("T")[0];
+const formatKey = (date) => date.toISOString().split("T")[0];
 
 /* ================= APP ================= */
 
@@ -111,71 +127,65 @@ function App() {
   const [employeeName, setEmployeeName] = useState("");
   const [baseShift, setBaseShift] = useState("Shift 1");
   const [rotationMonth, setRotationMonth] = useState("2026-02");
-
-  const [employees, setEmployees] = useState(() => {
-    const saved = localStorage.getItem("roster_employees");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem("roster_employees", JSON.stringify(employees));
+    const saved = localStorage.getItem("roster-data");
+    if (saved) setEmployees(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("roster-data", JSON.stringify(employees));
   }, [employees]);
 
   const addEmployee = () => {
     if (!employeeName.trim()) return;
     setEmployees([
       ...employees,
-      {
-        id: Date.now(),
-        name: employeeName,
-        shift: baseShift,
-        overrides: {},
-      },
+      { name: employeeName, shift: baseShift, overrides: {} },
     ]);
     setEmployeeName("");
   };
 
-  const deleteAssignment = (id) => {
-    setEmployees(employees.filter((e) => e.id !== id));
+  const removeEmployee = (index) => {
+    const updated = [...employees];
+    updated.splice(index, 1);
+    setEmployees(updated);
   };
 
-  const updateOverride = (empId, key, value) => {
-    setEmployees(
-      employees.map((e) =>
-        e.id === empId
-          ? {
-              ...e,
-              overrides: {
-                ...e.overrides,
-                [key]: value || undefined,
-              },
-            }
-          : e
-      )
-    );
+  const updateOverride = (empIndex, dateKey, value) => {
+    const updated = [...employees];
+    if (!value) delete updated[empIndex].overrides[dateKey];
+    else updated[empIndex].overrides[dateKey] = value;
+    setEmployees(updated);
   };
 
   const [year, month] = rotationMonth.split("-").map(Number);
-  const start = getSecondSunday(year, month - 1);
+  const cycleStart = getSecondSunday(year, month - 1);
   const nextMonth = new Date(year, month, 1);
-  const end = new Date(getSecondSunday(nextMonth.getFullYear(), nextMonth.getMonth()));
-  end.setDate(end.getDate() - 1);
-  const dates = generateDatesBetween(start, end);
+  const nextCycleStart = getSecondSunday(
+    nextMonth.getFullYear(),
+    nextMonth.getMonth()
+  );
+  const cycleEnd = new Date(nextCycleStart);
+  cycleEnd.setDate(cycleEnd.getDate() - 1);
+
+  const rotationDates = generateDatesBetween(cycleStart, cycleEnd);
 
   return (
     <div className="app">
       <header className="header">TEAM PRODUCTION SUPPORT ROSTER</header>
 
-      <section className="shift-details">
+      <div className="shift-box">
         <h3>Shift Details</h3>
         {Object.entries(shiftDetails).map(([k, v]) => (
           <div key={k}>
-            <strong>{k}</strong> — {v.label} (Off: {v.off.join(" & ")})
+            <strong>{k}</strong> — {v.label} (Off: {v.Week_Off})
           </div>
         ))}
-      </section>
+      </div>
 
-      <section className="controls">
+      <div className="controls">
         <input
           placeholder="Employee name"
           value={employeeName}
@@ -186,48 +196,62 @@ function App() {
             <option key={s}>{s}</option>
           ))}
         </select>
-        <button onClick={addEmployee}>Add</button>
-        <input type="month" value={rotationMonth} onChange={(e) => setRotationMonth(e.target.value)} />
-      </section>
+        <button className="add-btn" onClick={addEmployee}>
+          Add
+        </button>
+        <input
+          type="month"
+          value={rotationMonth}
+          onChange={(e) => setRotationMonth(e.target.value)}
+        />
+      </div>
 
-      {employees.map((emp) => (
-        <section className="employee-card" key={emp.id}>
-          <div className="employee-header">
+      {employees.map((emp, empIndex) => (
+        <div key={empIndex} className="employee-card">
+          <div className="emp-header">
             <h3>{emp.name}</h3>
-            <button className="delete-btn" onClick={() => deleteAssignment(emp.id)}>
+            <button
+              className="delete-btn"
+              onClick={() => removeEmployee(empIndex)}
+            >
               Delete Assignment
             </button>
           </div>
 
-          <p className="period">
-            Rotation Period: {start.toDateString()} → {end.toDateString()}
+          <p className="rotation">
+            Rotation Period: {cycleStart.toDateString()} →{" "}
+            {cycleEnd.toDateString()}
           </p>
 
           <div className="calendar">
-            {dates.map((d) => {
-              const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
-              const key = dateKey(d);
+            {rotationDates.map((d) => {
+              const weekday = d.toLocaleDateString("en-US", {
+                weekday: "long",
+              });
+              const key = formatKey(d);
               const override = emp.overrides[key];
-              const base = shiftDetails[emp.shift].schedule[weekday];
-              const text = override || base;
+              const base =
+                shiftDetails[emp.shift].schedule[weekday];
+
+              const display = override || base;
 
               return (
                 <div
                   key={key}
-                  className={`day ${text === "Week_Off" ? "off" : ""}`}
+                  className={`day ${
+                    display === "Week_Off" ? "off" : "work"
+                  }`}
                 >
                   <strong>{d.toDateString()}</strong>
-                  <div>{text}</div>
-
+                  <div>{display}</div>
                   <select
-                    className="day-select"
                     value={override || ""}
                     onChange={(e) =>
-                      updateOverride(emp.id, key, e.target.value)
+                      updateOverride(empIndex, key, e.target.value)
                     }
                   >
                     <option value="">Default</option>
-                    <option value="Week_Off">Leave</option>
+                    <option value="LEAVE">Leave</option>
                     {timingOptions.map((t) => (
                       <option key={t} value={t}>
                         {t}
@@ -238,7 +262,7 @@ function App() {
               );
             })}
           </div>
-        </section>
+        </div>
       ))}
     </div>
   );
