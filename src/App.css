@@ -1,101 +1,113 @@
 body {
-  margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: #f5f7fa;
+  background: #f6f8fb;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .app {
   padding: 30px;
 }
 
-.header {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+.app-header {
+  background: linear-gradient(135deg, #1e3a8a, #274c9b);
   color: white;
-  padding: 24px;
-  font-size: 26px;
-  font-weight: bold;
-  border-radius: 12px;
-  margin-bottom: 25px;
+  padding: 26px 40px;
+  border-radius: 14px;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 30px;
 }
 
 .shift-details {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
+  padding: 22px;
+  border-radius: 14px;
+  margin-bottom: 28px;
+}
+
+.shift-line {
+  margin-bottom: 10px;
 }
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 30px;
 }
 
 .controls input,
 .controls select {
-  padding: 6px;
+  padding: 8px;
 }
 
 .controls button {
   background: #2e7d32;
   color: white;
   border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 8px 16px;
 }
 
 .employee-card {
   background: white;
-  padding: 20px;
   border-radius: 16px;
-  margin-bottom: 30px;
+  padding: 24px;
+  margin-bottom: 40px;
 }
 
 .employee-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-.delete-btn {
-  background: #d32f2f;
+.delete-assignment {
+  background: #dc2626;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 6px;
-  cursor: pointer;
 }
 
-.period {
-  margin: 10px 0 20px;
-  color: #555;
-}
-
-.calendar {
+.rotation-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.day {
-  background: #e3f2fd;
-  padding: 10px;
-  border-radius: 10px;
+.day-card {
+  padding: 12px;
+  border-radius: 12px;
   font-size: 13px;
 }
 
-.day.off {
-  background: #fdecea;
+.day-working {
+  background: #e6f6ff;
 }
 
+.day-off {
+  background: #ffe9e9;
+}
+
+/* Clean dropdown */
 .day-select {
   margin-top: 6px;
+  position: relative;
+}
+
+.day-select select {
   width: 100%;
-  appearance: none;
+  padding: 4px 22px 4px 6px;
   border: none;
   background: transparent;
+  appearance: none;
   font-size: 12px;
-  cursor: pointer;
-  text-align: right;
+}
+
+.day-select::after {
+  content: "▾";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #15803d;
 }

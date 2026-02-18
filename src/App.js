@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 /* ================= SHIFTS ================= */
@@ -6,7 +6,7 @@ import "./App.css";
 const shiftDetails = {
   "Shift 1": {
     label: "04:30 AM – 12:30 PM",
-    Week_Off: "Monday & Tuesday",
+    off: ["Monday", "Tuesday"],
     schedule: {
       Monday: "Week_Off",
       Tuesday: "Week_Off",
@@ -19,7 +19,7 @@ const shiftDetails = {
   },
   "Shift 2": {
     label: "12:30 PM – 08:30 PM",
-    Week_Off: "Thursday & Friday",
+    off: ["Thursday", "Friday"],
     schedule: {
       Monday: "12:30 PM – 08:30 PM",
       Tuesday: "12:30 PM – 08:30 PM",
@@ -33,7 +33,7 @@ const shiftDetails = {
   "Shift 3": {
     label:
       "Mon–Tue: 04:30 AM – 12:30 PM | Wed–Fri: 12:30 PM – 08:30 PM",
-    Week_Off: "Saturday & Sunday",
+    off: ["Saturday", "Sunday"],
     schedule: {
       Monday: "04:30 AM – 12:30 PM",
       Tuesday: "04:30 AM – 12:30 PM",
@@ -46,7 +46,7 @@ const shiftDetails = {
   },
   "Shift 4": {
     label: "08:30 AM – 04:30 PM",
-    Week_Off: "Saturday & Sunday",
+    off: ["Saturday", "Sunday"],
     schedule: {
       Monday: "08:30 AM – 04:30 PM",
       Tuesday: "08:30 AM – 04:30 PM",
@@ -59,7 +59,7 @@ const shiftDetails = {
   },
   "Shift 5": {
     label: "08:30 PM – 04:30 AM",
-    Week_Off: "Thursday & Friday",
+    off: ["Thursday", "Friday"],
     schedule: {
       Monday: "08:30 PM – 04:30 AM",
       Tuesday: "08:30 PM – 04:30 AM",
@@ -70,11 +70,9 @@ const shiftDetails = {
       Sunday: "08:30 PM – 04:30 AM",
     },
   },
-
-  /* ✅ NEW SHIFT 6 */
   "Shift 6": {
     label: "06:30 PM – 02:30 AM",
-    Week_Off: "Saturday & Sunday",
+    off: ["Saturday", "Sunday"],
     schedule: {
       Monday: "06:30 PM – 02:30 AM",
       Tuesday: "06:30 PM – 02:30 AM",
@@ -87,15 +85,17 @@ const shiftDetails = {
   },
 };
 
-const timingOptions = [
+const overrideOptions = [
+  "",
+  "LEAVE",
   "04:30 AM – 12:30 PM",
   "12:30 PM – 08:30 PM",
   "08:30 AM – 04:30 PM",
-  "06:30 PM – 02:30 AM", // ✅ Shift 6 timing
   "08:30 PM – 04:30 AM",
+  "06:30 PM – 02:30 AM",
 ];
 
-/* ================= DATE HELPERS ================= */
+/* ================= HELPERS ================= */
 
 const getSecondSunday = (year, month) => {
   let count = 0;
@@ -109,78 +109,75 @@ const getSecondSunday = (year, month) => {
   }
 };
 
-const generateDatesBetween = (start, end) => {
+const formatKey = (date) => date.toISOString().split("T")[0];
+
+const getDatesBetween = (start, end) => {
   const dates = [];
-  let current = new Date(start);
-  while (current <= end) {
-    dates.push(new Date(current));
-    current.setDate(current.getDate() + 1);
+  const cur = new Date(start);
+  while (cur <= end) {
+    dates.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
   }
   return dates;
 };
 
-const formatKey = (date) => date.toISOString().split("T")[0];
-
 /* ================= APP ================= */
 
-function App() {
-  const [employeeName, setEmployeeName] = useState("");
-  const [baseShift, setBaseShift] = useState("Shift 1");
-  const [rotationMonth, setRotationMonth] = useState("2026-02");
-  const [employees, setEmployees] = useState([]);
+export default function App() {
+  const [employees, setEmployees] = useState(
+    JSON.parse(localStorage.getItem("roster")) || []
+  );
+  const [name, setName] = useState("");
+  const [shift, setShift] = useState("Shift 1");
+  const [month, setMonth] = useState("2026-02");
 
   useEffect(() => {
-    const saved = localStorage.getItem("roster-data");
-    if (saved) setEmployees(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("roster-data", JSON.stringify(employees));
+    localStorage.setItem("roster", JSON.stringify(employees));
   }, [employees]);
 
   const addEmployee = () => {
-    if (!employeeName.trim()) return;
+    if (!name.trim()) return;
     setEmployees([
       ...employees,
-      { name: employeeName, shift: baseShift, overrides: {} },
+      { name, shift, overrides: {} },
     ]);
-    setEmployeeName("");
+    setName("");
   };
 
   const removeEmployee = (index) => {
-    const updated = [...employees];
-    updated.splice(index, 1);
-    setEmployees(updated);
+    const copy = [...employees];
+    copy.splice(index, 1);
+    setEmployees(copy);
   };
 
-  const updateOverride = (empIndex, dateKey, value) => {
-    const updated = [...employees];
-    if (!value) delete updated[empIndex].overrides[dateKey];
-    else updated[empIndex].overrides[dateKey] = value;
-    setEmployees(updated);
+  const updateOverride = (eIdx, key, value) => {
+    const copy = [...employees];
+    if (!value) delete copy[eIdx].overrides[key];
+    else copy[eIdx].overrides[key] = value;
+    setEmployees(copy);
   };
 
-  const [year, month] = rotationMonth.split("-").map(Number);
-  const cycleStart = getSecondSunday(year, month - 1);
-  const nextMonth = new Date(year, month, 1);
-  const nextCycleStart = getSecondSunday(
-    nextMonth.getFullYear(),
-    nextMonth.getMonth()
+  const [year, m] = month.split("-").map(Number);
+  const start = getSecondSunday(year, m - 1);
+  const nextStart = getSecondSunday(
+    new Date(year, m, 1).getFullYear(),
+    new Date(year, m, 1).getMonth()
   );
-  const cycleEnd = new Date(nextCycleStart);
-  cycleEnd.setDate(cycleEnd.getDate() - 1);
-
-  const rotationDates = generateDatesBetween(cycleStart, cycleEnd);
+  const end = new Date(nextStart);
+  end.setDate(end.getDate() - 1);
+  const days = getDatesBetween(start, end);
 
   return (
     <div className="app">
-      <header className="header">TEAM PRODUCTION SUPPORT ROSTER</header>
+      <div className="app-header">
+        TEAM PRODUCTION SUPPORT ROSTER
+      </div>
 
-      <div className="shift-box">
+      <div className="shift-details">
         <h3>Shift Details</h3>
         {Object.entries(shiftDetails).map(([k, v]) => (
-          <div key={k}>
-            <strong>{k}</strong> — {v.label} (Off: {v.Week_Off})
+          <div key={k} className="shift-line">
+            <strong>{k}</strong> — {v.label} (Off: {v.off.join(" & ")})
           </div>
         ))}
       </div>
@@ -188,76 +185,69 @@ function App() {
       <div className="controls">
         <input
           placeholder="Employee name"
-          value={employeeName}
-          onChange={(e) => setEmployeeName(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
-        <select value={baseShift} onChange={(e) => setBaseShift(e.target.value)}>
+        <select value={shift} onChange={(e) => setShift(e.target.value)}>
           {Object.keys(shiftDetails).map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
-        <button className="add-btn" onClick={addEmployee}>
-          Add
-        </button>
-        <input
-          type="month"
-          value={rotationMonth}
-          onChange={(e) => setRotationMonth(e.target.value)}
-        />
+        <button onClick={addEmployee}>Add</button>
+        <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
       </div>
 
-      {employees.map((emp, empIndex) => (
-        <div key={empIndex} className="employee-card">
-          <div className="emp-header">
+      {employees.map((emp, eIdx) => (
+        <div className="employee-card" key={eIdx}>
+          <div className="employee-header">
             <h3>{emp.name}</h3>
             <button
-              className="delete-btn"
-              onClick={() => removeEmployee(empIndex)}
+              className="delete-assignment"
+              onClick={() => removeEmployee(eIdx)}
             >
               Delete Assignment
             </button>
           </div>
 
-          <p className="rotation">
-            Rotation Period: {cycleStart.toDateString()} →{" "}
-            {cycleEnd.toDateString()}
+          <p>
+            <strong>Rotation Period:</strong>{" "}
+            {start.toDateString()} → {end.toDateString()}
           </p>
 
-          <div className="calendar">
-            {rotationDates.map((d) => {
-              const weekday = d.toLocaleDateString("en-US", {
-                weekday: "long",
-              });
+          <div className="rotation-grid">
+            {days.map((d) => {
+              const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
               const key = formatKey(d);
               const override = emp.overrides[key];
-              const base =
-                shiftDetails[emp.shift].schedule[weekday];
-
-              const display = override || base;
+              const base = shiftDetails[emp.shift].schedule[weekday];
+              const text = override || base;
 
               return (
                 <div
                   key={key}
-                  className={`day ${
-                    display === "Week_Off" ? "off" : "work"
+                  className={`day-card ${
+                    text === "Week_Off" || text === "LEAVE"
+                      ? "day-off"
+                      : "day-working"
                   }`}
                 >
                   <strong>{d.toDateString()}</strong>
-                  <div>{display}</div>
-                  <select
-                    value={override || ""}
-                    onChange={(e) =>
-                      updateOverride(empIndex, key, e.target.value)
-                    }
-                  >
-                    <option value="">Default</option>
-                    <option value="LEAVE">Leave</option>
-                    {timingOptions.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+                  <div>{text}</div>
+                  <div className="day-select">
+                    <select
+                      value={override || ""}
+                      onChange={(e) =>
+                        updateOverride(eIdx, key, e.target.value)
+                      }
+                    >
+                      <option value="">Default</option>
+                      {overrideOptions
+                        .filter(Boolean)
+                        .map((o) => (
+                          <option key={o}>{o}</option>
+                        ))}
+                    </select>
+                  </div>
                 </div>
               );
             })}
@@ -267,5 +257,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
